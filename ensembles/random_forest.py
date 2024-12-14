@@ -7,13 +7,13 @@ import numpy as np
 import numpy.typing as npt
 from sklearn.tree import DecisionTreeRegressor
 
-from .utils import ConvergenceHistory
+from .utils import ConvergenceHistory, whether_to_stop, rmsle
 
 
 class RandomForestMSE:
     def __init__(
-        self, n_estimators: int, tree_params: dict[str, Any] | None = None
-    ) -> None:
+        self, n_estimators: int, random_state: int = 42, tree_params: dict[str, Any] | None = None
+        ) -> None:
         """
         Handmade random forest regressor.
 
@@ -24,8 +24,16 @@ class RandomForestMSE:
             tree_params (dict[str, Any] | None, optional): Parameters for sklearn trees. Defaults to None.
         """
         self.n_estimators = n_estimators
+        self.random_state = random_state
+
         if tree_params is None:
             tree_params = {}
+
+        if 'max_features' not in tree_params:
+            tree_params['max_features'] = 'sqrt'
+        
+        tree_params['random_state'] = random_state
+
         self.forest = [
             DecisionTreeRegressor(**tree_params) for _ in range(n_estimators)
         ]
@@ -53,8 +61,32 @@ class RandomForestMSE:
         Returns:
             ConvergenceHistory | None: Instance of `ConvergenceHistory` if `trace=True` or if validation data is provided.
         """
+        np.random.seed(self.random_state)
+
+        history = ConvergenceHistory()
+        history['train'] = []
+
+        if X_val:
+            trace = True
+            history['val'] = []
+
+        for t in range(self.n_estimators):
+            index = np.random.randint(0, X.shape[0], size=X.shape[0])
+
+            self.forest[t].fit(X[index, :], y[index])
+            
+            y_pred_t = self.predict(X, y)
+            history["train"].append(rmsle(y, y_pred_t))
+
+            if X_val and y_val:
+                y_pred_v = self.predict(X_val, y_val)
+                history["val"].append(rmsle(y_val, y_pred_v))
+
+            if whether_to_stop(history, patience=patience):
+                break
         
-        ...
+        if trace:
+            return history
 
     def predict(self, X: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """
