@@ -7,7 +7,7 @@ import numpy as np
 import numpy.typing as npt
 from sklearn.tree import DecisionTreeRegressor
 
-from .utils import ConvergenceHistory, whether_to_stop, rmsle
+from .utils import ConvergenceHistory, rmsle
 
 
 class RandomForestMSE:
@@ -74,16 +74,13 @@ class RandomForestMSE:
             index = np.random.randint(0, X.shape[0], size=X.shape[0])
 
             self.forest[t].fit(X[index, :], y[index])
-            
+
             y_pred_t = self.predict(X, y)
             history["train"].append(rmsle(y, y_pred_t))
 
             if X_val and y_val:
                 y_pred_v = self.predict(X_val, y_val)
                 history["val"].append(rmsle(y_val, y_pred_v))
-
-            if whether_to_stop(history, patience=patience):
-                break
         
         if trace:
             return history
@@ -100,8 +97,13 @@ class RandomForestMSE:
         Returns:
             npt.NDArray[np.float64]: Predicted values, array of shape (n_objects,).
         """
+        y_pred = np.zeros(shape=X.shape[0]) 
+
+        for t in range(self.n_estimators):
+            y_pred += self.forest[t].predict(X)
         
-        ...
+        return y_pred / self.n_estimators
+
 
     def dump(self, dirpath: str) -> None:
         """
