@@ -71,5 +71,17 @@ def whether_to_stop(convergence_history: ConvergenceHistory, patience: int) -> b
     KeyError
         If neither 'train' nor 'val' key is present in the convergence_history.
     """
-    
-    ...
+    if 'val' in convergence_history.keys():
+        rmlse_history = convergence_history['val']
+    elif 'train' in convergence_history.keys():
+        rmlse_history = convergence_history['train']
+    else:
+        raise KeyError("'train' nor 'val' key is present in the convergence_history")
+
+    if len(rmlse_history) < patience + 1:
+        return False
+
+    min_loss = min(rmlse_history)
+    patience_losses = rmlse_history[-patience:]
+
+    return all(loss > min_loss for loss in patience_losses)
