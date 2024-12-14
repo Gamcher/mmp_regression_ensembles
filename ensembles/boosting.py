@@ -7,7 +7,7 @@ import numpy as np
 import numpy.typing as npt
 from sklearn.tree import DecisionTreeRegressor
 
-from .utils import ConvergenceHistory
+from .utils import ConvergenceHistory, whether_to_stop, rmsle
 
 
 class GradientBoostingMSE:
@@ -39,6 +39,8 @@ class GradientBoostingMSE:
             DecisionTreeRegressor(**tree_params) for _ in range(n_estimators)
         ]
 
+        self.a_0 = None
+
     def fit(
         self,
         X: npt.NDArray[np.float64],
@@ -62,8 +64,38 @@ class GradientBoostingMSE:
         Returns:
             ConvergenceHistory | None: Instance of `ConvergenceHistory` if `trace=True` or if validation data is provided.
         """
+
+        history = ConvergenceHistory()
+        history['train'] = []
+
+        if X_val:
+            trace = True
+            history['val'] = []
+
+        # первое приближение - константное
+        self.a_0 = np.mean(y)
+        a = np.full_like(y, self.a_0)
+
+        for t in range(self.n_estimators):
+            # вычисляем ошибку, на которой будем предсказывать
+            y_err = y - a
+            self.forest[t].fit(X, y_err)
+            
+            # обновление предсказание с новым деревом
+            a += self.learning_rate * self.forest[t].fit(X, y_err)
+            
+            y_pred_t = self.predict(X, y)
+            history["train"].append(rmsle(y, y_pred_t))
+
+            if X_val and y_val:
+                y_pred_v = self.predict(X_val, y_val)
+                history["val"].append(rmsle(y_val, y_pred_v))
+
+            if whether_to_stop(history, patience=patience):
+                break
         
-        ...
+        if trace:
+            return history
 
     def predict(self, X: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """
@@ -77,8 +109,12 @@ class GradientBoostingMSE:
         Returns:
             npt.NDArray[np.float64]: Predicted values, array of shape (n_objects,).
         """
-        
-        ...
+        y_pred = np.full(X.shape, self.a_0)
+
+        for t in range(self.n_estimators):
+            y_pred += self.learning_rate * self.forest[t].predict(X)
+    
+        return y_pred      
 
     def dump(self, dirpath: str) -> None:
         """
