@@ -25,7 +25,7 @@ class RandomForestMSE:
         """
         self.n_estimators = n_estimators
         self.random_state = random_state
-
+        
         if tree_params is None:
             tree_params = {}
 
@@ -37,6 +37,8 @@ class RandomForestMSE:
         self.forest = [
             DecisionTreeRegressor(**tree_params) for _ in range(n_estimators)
         ]
+
+        self.fitted_trees = 0
 
     def fit(
         self,
@@ -73,13 +75,14 @@ class RandomForestMSE:
         for t in range(self.n_estimators):
             index = np.random.randint(0, X.shape[0], size=X.shape[0])
 
-            self.forest[t].fit(X[index, :], y[index])
+            self.forest[t].fit(X.iloc[index, :], y.iloc[index])
+            self.fitted_trees += 1
 
-            y_pred_t = self.predict(X, y)
+            y_pred_t = self.predict(X)
             history["train"].append(rmsle(y, y_pred_t))
 
             if X_val and y_val:
-                y_pred_v = self.predict(X_val, y_val)
+                y_pred_v = self.predict(X_val)
                 history["val"].append(rmsle(y_val, y_pred_v))
         
         if trace:
@@ -99,10 +102,10 @@ class RandomForestMSE:
         """
         y_pred = np.zeros(shape=X.shape[0]) 
 
-        for t in range(self.n_estimators):
+        for t in range(self.fitted_trees):
             y_pred += self.forest[t].predict(X)
-        
-        return y_pred / self.n_estimators
+            
+        return y_pred / self.fitted_trees
 
 
     def dump(self, dirpath: str) -> None:
