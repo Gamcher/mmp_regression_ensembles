@@ -84,9 +84,10 @@ class RandomForestMSE:
             if X_val and y_val:
                 y_pred_v = self.predict(X_val)
                 history["val"].append(rmsle(y_val, y_pred_v))
-        
-            if whether_to_stop(convergence_history=history, patience=patience):
-                break
+                
+            if patience:
+                if whether_to_stop(convergence_history=history, patience=patience):
+                    break
 
         if trace:
             return history
