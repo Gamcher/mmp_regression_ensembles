@@ -7,7 +7,7 @@ import numpy as np
 import numpy.typing as npt
 from sklearn.tree import DecisionTreeRegressor
 
-from .utils import ConvergenceHistory, rmsle
+from .utils import ConvergenceHistory, rmsle, whether_to_stop
 
 
 class RandomForestMSE:
@@ -38,7 +38,7 @@ class RandomForestMSE:
             DecisionTreeRegressor(**tree_params) for _ in range(n_estimators)
         ]
 
-        self.fitted_trees = 0
+        self._fitted_trees = 0
 
     def fit(
         self,
@@ -75,8 +75,8 @@ class RandomForestMSE:
         for t in range(self.n_estimators):
             index = np.random.randint(0, X.shape[0], size=X.shape[0])
 
-            self.forest[t].fit(X.iloc[index, :], y.iloc[index])
-            self.fitted_trees += 1
+            self.forest[t].fit(X[index, :], y[index])
+            self._fitted_trees += 1
 
             y_pred_t = self.predict(X)
             history["train"].append(rmsle(y, y_pred_t))
@@ -85,6 +85,9 @@ class RandomForestMSE:
                 y_pred_v = self.predict(X_val)
                 history["val"].append(rmsle(y_val, y_pred_v))
         
+            if whether_to_stop(convergence_history=history, patience=patience):
+                break
+
         if trace:
             return history
 
@@ -102,10 +105,10 @@ class RandomForestMSE:
         """
         y_pred = np.zeros(shape=X.shape[0]) 
 
-        for t in range(self.fitted_trees):
+        for t in range(self._fitted_trees):
             y_pred += self.forest[t].predict(X)
             
-        return y_pred / self.fitted_trees
+        return y_pred / self._fitted_trees
 
 
     def dump(self, dirpath: str) -> None:
