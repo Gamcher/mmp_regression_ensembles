@@ -75,7 +75,7 @@ class RandomForestMSE:
         for t in range(self.n_estimators):
             index = np.random.randint(0, X.shape[0], size=X.shape[0])
 
-            self.forest[t].fit(X.iloc[index, :], y.iloc[index])
+            self.forest[t].fit(X[index, :], y[index])
             self.fitted_trees += 1
 
             y_pred_t = self.predict(X)
