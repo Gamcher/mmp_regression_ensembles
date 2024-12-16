@@ -68,7 +68,7 @@ class RandomForestMSE:
         history = ConvergenceHistory()
         history['train'] = []
 
-        if X_val:
+        if X_val is not None:
             trace = True
             history['val'] = []
 
@@ -81,7 +81,7 @@ class RandomForestMSE:
             y_pred_t = self.predict(X)
             history["train"].append(rmsle(y, y_pred_t))
 
-            if X_val and y_val:
+            if (X_val is not None) and (y_val is not None):
                 y_pred_v = self.predict(X_val)
                 history["val"].append(rmsle(y_val, y_pred_v))
                 
