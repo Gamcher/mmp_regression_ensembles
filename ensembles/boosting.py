@@ -40,6 +40,7 @@ class GradientBoostingMSE:
         ]
 
         self.a_0 = None
+        self.fitted_trees = 0
 
     def fit(
         self,
@@ -68,7 +69,7 @@ class GradientBoostingMSE:
         history = ConvergenceHistory()
         history['train'] = []
 
-        if X_val:
+        if X_val is not None:
             trace = True
             history['val'] = []
 
@@ -80,14 +81,14 @@ class GradientBoostingMSE:
             # вычисляем ошибку, на которой будем предсказывать
             y_err = y - a
             self.forest[t].fit(X, y_err)
-            
+            self.fitted_trees += 1
             # обновление предсказание с новым деревом
             a += self.learning_rate * self.forest[t].fit(X, y_err)
             
             y_pred_t = self.predict(X, y)
             history["train"].append(rmsle(y, y_pred_t))
 
-            if X_val and y_val:
+            if (X_val is not None) and (y_val is not None):
                 y_pred_v = self.predict(X_val, y_val)
                 history["val"].append(rmsle(y_val, y_pred_v))
 
@@ -113,7 +114,7 @@ class GradientBoostingMSE:
         """
         y_pred = np.full(X.shape[0], self.a_0)
 
-        for t in range(self.n_estimators):
+        for t in range(self.fitted_trees):
             y_pred += self.learning_rate * self.forest[t].predict(X)
     
         return y_pred      
