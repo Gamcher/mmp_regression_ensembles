@@ -92,10 +92,11 @@ class GradientBoostingMSE:
                 y_pred_v = self.predict(X_val)
                 history["val"].append(rmsle(y_val, y_pred_v))
             
-            if whether_to_stop(history, patience=patience):
-                self.n_estimators = t
-                self.forest = [self.forest[i] for i in range(t)]
-                break
+            if patience:
+                if whether_to_stop(history, patience=patience):
+                    self.n_estimators = t
+                    self.forest = [self.forest[i] for i in range(t)]
+                    break
         
         if trace:
             return history
