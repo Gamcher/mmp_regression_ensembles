@@ -83,7 +83,7 @@ class GradientBoostingMSE:
             self.forest[t].fit(X, y_err)
             self.fitted_trees += 1
             # обновление предсказание с новым деревом
-            a += self.learning_rate * self.forest[t].fit(X, y_err)
+            a += self.learning_rate * self.forest[t].predict(X, y_err)
             
             y_pred_t = self.predict(X, y)
             history["train"].append(rmsle(y, y_pred_t))
