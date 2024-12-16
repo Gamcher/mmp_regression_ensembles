@@ -83,15 +83,15 @@ class GradientBoostingMSE:
             self.forest[t].fit(X, y_err)
             self.fitted_trees += 1
             # обновление предсказание с новым деревом
-            a += self.learning_rate * self.forest[t].predict(X, y_err)
+            a += self.learning_rate * self.forest[t].predict(X)
             
-            y_pred_t = self.predict(X, y)
+            y_pred_t = self.predict(X)
             history["train"].append(rmsle(y, y_pred_t))
 
             if (X_val is not None) and (y_val is not None):
-                y_pred_v = self.predict(X_val, y_val)
+                y_pred_v = self.predict(X_val)
                 history["val"].append(rmsle(y_val, y_pred_v))
-
+            
             if whether_to_stop(history, patience=patience):
                 self.n_estimators = t
                 self.forest = [self.forest[i] for i in range(t)]
