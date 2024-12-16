@@ -18,6 +18,7 @@ class ConvergenceHistory(TypedDict):
 
     train: list[float]
     val: list[float] | None = None
+    time: list[float]
 
 
 def rmsle(y: npt.NDArray[np.float64], z: npt.NDArray[np.float64]) -> np.float64:
