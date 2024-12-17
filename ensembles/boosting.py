@@ -80,6 +80,11 @@ class GradientBoostingMSE:
 
         start_time = time.time()
 
+        y_pred_t = np.full(X.shape[0], self.a_0)
+
+        if (X_val is not None) and (y_val is not None):
+            y_pred_v = np.full(X_val.shape[0], self.a_0)
+
         for t in range(self.n_estimators):
             # вычисляем ошибку, на которой будем предсказывать
             y_err = y - a
@@ -88,12 +93,12 @@ class GradientBoostingMSE:
             # обновление предсказание с новым деревом
             a += self.learning_rate * self.forest[t].predict(X)
             
-            y_pred_t = self.predict(X)
+            y_pred_t += self.learning_rate * self.forest[t].predict(X)
             history["train"].append(rmsle(y, y_pred_t))
             history['time'].append(time.time() - start_time)
             
             if (X_val is not None) and (y_val is not None):
-                y_pred_v = self.predict(X_val)
+                y_pred_v += self.learning_rate * self.forest[t].predict(X_val)
                 history["val"].append(rmsle(y_val, y_pred_v))
             
             if patience:
