@@ -1,4 +1,4 @@
-import json
+import json, time
 from pathlib import Path
 from typing import Any
 
@@ -68,6 +68,7 @@ class GradientBoostingMSE:
 
         history = ConvergenceHistory()
         history['train'] = []
+        history['time'] = []
 
         if X_val is not None:
             trace = True
@@ -76,6 +77,8 @@ class GradientBoostingMSE:
         # первое приближение - константное
         self.a_0 = np.mean(y)
         a = np.full_like(y, self.a_0)
+
+        start_time = time.time()
 
         for t in range(self.n_estimators):
             # вычисляем ошибку, на которой будем предсказывать
@@ -87,7 +90,8 @@ class GradientBoostingMSE:
             
             y_pred_t = self.predict(X)
             history["train"].append(rmsle(y, y_pred_t))
-
+            history['time'].append(time.time() - start_time)
+            
             if (X_val is not None) and (y_val is not None):
                 y_pred_v = self.predict(X_val)
                 history["val"].append(rmsle(y_val, y_pred_v))

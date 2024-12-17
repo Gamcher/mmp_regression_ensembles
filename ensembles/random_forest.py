@@ -1,4 +1,4 @@
-import json
+import json, time
 from pathlib import Path
 from typing import Any
 
@@ -67,10 +67,13 @@ class RandomForestMSE:
 
         history = ConvergenceHistory()
         history['train'] = []
+        history['time'] = []
 
         if X_val is not None:
             trace = True
             history['val'] = []
+
+        start_time = time.time()
 
         for t in range(self.n_estimators):
             index = np.random.randint(0, X.shape[0], size=X.shape[0])
@@ -80,7 +83,8 @@ class RandomForestMSE:
 
             y_pred_t = self.predict(X)
             history["train"].append(rmsle(y, y_pred_t))
-
+            history['time'].append(time.time() - start_time)
+            
             if (X_val is not None) and (y_val is not None):
                 y_pred_v = self.predict(X_val)
                 history["val"].append(rmsle(y_val, y_pred_v))
