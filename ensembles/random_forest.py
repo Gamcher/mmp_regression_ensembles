@@ -75,18 +75,24 @@ class RandomForestMSE:
 
         start_time = time.time()
 
+        y_pred_t = np.zeros(shape=X.shape[0])
+
+        if (X_val is not None) and (y_val is not None):
+            y_pred_v = np.zeros(shape=X_val.shape[0])
+
         for t in range(self.n_estimators):
             index = np.random.randint(0, X.shape[0], size=X.shape[0])
 
             self.forest[t].fit(X[index, :], y[index])
             self._fitted_trees += 1
 
-            y_pred_t = self.predict(X)
+            y_pred_t += self.forest[t].predict(X)
+
             history["train"].append(rmsle(y, y_pred_t))
             history['time'].append(time.time() - start_time)
             
             if (X_val is not None) and (y_val is not None):
-                y_pred_v = self.predict(X_val)
+                y_pred_v += self.forest[t].predict(X_val)
                 history["val"].append(rmsle(y_val, y_pred_v))
                 
             if patience:
