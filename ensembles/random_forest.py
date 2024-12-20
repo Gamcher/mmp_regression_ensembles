@@ -88,12 +88,12 @@ class RandomForestMSE:
 
             y_pred_t += self.forest[t].predict(X)
 
-            history["train"].append(rmsle(y, y_pred_t))
+            history["train"].append(rmsle(y, y_pred_t/(self._fitted_trees)))
             history['time'].append(time.time() - start_time)
             
             if (X_val is not None) and (y_val is not None):
                 y_pred_v += self.forest[t].predict(X_val)
-                history["val"].append(rmsle(y_val, y_pred_v))
+                history["val"].append(rmsle(y_val, y_pred_v/(self._fitted_trees)))
                 
             if patience:
                 if whether_to_stop(convergence_history=history, patience=patience):
