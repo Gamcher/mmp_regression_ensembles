@@ -40,3 +40,18 @@ class ExperimentConfig(BaseModel):
     max_features: Union[int, str]
     learning_rate: Optional[float] = 0.1
     target_column: str
+
+
+class ConvergenceHistoryResponse(BaseModel):
+    """
+    The convergence history of experiment.
+
+    Attributes:
+        val (list[float]): A list of RMLSE on validation data for each tree.
+        train (list[float]): A list of RMLSE on train data for each tree.
+        time (list[float]): A list of training time for each tree.
+    """
+
+    val: Optional[list[float]] = None
+    train: list[float]
+    time: list[float]
