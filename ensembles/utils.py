@@ -21,7 +21,8 @@ class ConvergenceHistory(TypedDict):
     time: list[float]
 
 
-def rmsle(y: npt.NDArray[np.float64], z: npt.NDArray[np.float64]) -> np.float64:
+def rmsle(y: npt.NDArray[np.float64],
+          z: npt.NDArray[np.float64]) -> np.float64:
     """
     Calculate the Root Mean Squared Logarithmic Error (RMSLE) between two arrays.
 
@@ -45,7 +46,8 @@ def rmsle(y: npt.NDArray[np.float64], z: npt.NDArray[np.float64]) -> np.float64:
     return float(res)
 
 
-def whether_to_stop(convergence_history: ConvergenceHistory, patience: int) -> bool:
+def whether_to_stop(convergence_history: ConvergenceHistory,
+                    patience: int) -> bool:
     """
     Determine whether to stop training based on the convergence history.
 
@@ -73,7 +75,7 @@ def whether_to_stop(convergence_history: ConvergenceHistory, patience: int) -> b
         If neither 'train' nor 'val' key is present in the convergence_history.
     """
     rmlse_history = None
-    
+
     if 'val' in convergence_history:
         rmlse_history = convergence_history['val']
 
@@ -81,7 +83,8 @@ def whether_to_stop(convergence_history: ConvergenceHistory, patience: int) -> b
         if rmlse_history is None:
             rmlse_history = convergence_history['train']
     else:
-        raise KeyError("'train' nor 'val' key is present in the convergence_history")
+        raise KeyError(
+            "'train' nor 'val' key is present in the convergence_history")
 
     if len(rmlse_history) < patience + 1:
         return False
