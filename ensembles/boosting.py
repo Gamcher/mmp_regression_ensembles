@@ -1,4 +1,5 @@
-import json, time
+import json
+import time
 from pathlib import Path
 from typing import Any
 
@@ -92,21 +93,21 @@ class GradientBoostingMSE:
             self.fitted_trees += 1
             # обновление предсказание с новым деревом
             a += self.learning_rate * self.forest[t].predict(X)
-            
+
             y_pred_t += self.learning_rate * self.forest[t].predict(X)
             history["train"].append(rmsle(y, y_pred_t))
             history['time'].append(time.time() - start_time)
-            
+
             if (X_val is not None) and (y_val is not None):
                 y_pred_v += self.learning_rate * self.forest[t].predict(X_val)
                 history["val"].append(rmsle(y_val, y_pred_v))
-            
+
             if patience:
                 if whether_to_stop(history, patience=patience):
                     self.n_estimators = t
                     self.forest = [self.forest[i] for i in range(t)]
                     break
-        
+
         if trace:
             return history
 
@@ -126,8 +127,8 @@ class GradientBoostingMSE:
 
         for t in range(self.fitted_trees):
             y_pred += self.learning_rate * self.forest[t].predict(X)
-    
-        return y_pred      
+
+        return y_pred
 
     def dump(self, dirpath: str) -> None:
         """
@@ -165,7 +166,9 @@ class GradientBoostingMSE:
         """
         with (Path(dirpath) / "params.json").open() as file:
             params = json.load(file)
-        instance = cls(params["n_estimators"], learning_rate=params["learning_rate"])
+        instance = cls(
+            params["n_estimators"],
+            learning_rate=params["learning_rate"])
 
         trees_path = Path(dirpath) / "trees"
 

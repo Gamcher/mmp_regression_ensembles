@@ -1,4 +1,5 @@
-import json, time
+import json
+import time
 from pathlib import Path
 from typing import Any
 
@@ -13,7 +14,7 @@ from .utils import ConvergenceHistory, rmsle, whether_to_stop
 class RandomForestMSE:
     def __init__(
         self, n_estimators: int, random_state: int = 42, tree_params: dict[str, Any] | None = None
-        ) -> None:
+    ) -> None:
         """
         Handmade random forest regressor.
 
@@ -25,13 +26,13 @@ class RandomForestMSE:
         """
         self.n_estimators = n_estimators
         self.random_state = random_state
-        
+
         if tree_params is None:
             tree_params = {}
 
         if 'max_features' not in tree_params:
             tree_params['max_features'] = 'sqrt'
-        
+
         tree_params['random_state'] = random_state
 
         self.forest = [
@@ -88,15 +89,17 @@ class RandomForestMSE:
 
             y_pred_t += self.forest[t].predict(X)
 
-            history["train"].append(rmsle(y, y_pred_t/(self._fitted_trees)))
+            history["train"].append(rmsle(y, y_pred_t / (self._fitted_trees)))
             history['time'].append(time.time() - start_time)
-            
+
             if (X_val is not None) and (y_val is not None):
                 y_pred_v += self.forest[t].predict(X_val)
-                history["val"].append(rmsle(y_val, y_pred_v/(self._fitted_trees)))
-                
+                history["val"].append(
+                    rmsle(y_val, y_pred_v / (self._fitted_trees)))
+
             if patience:
-                if whether_to_stop(convergence_history=history, patience=patience):
+                if whether_to_stop(convergence_history=history,
+                                   patience=patience):
                     break
 
         if trace:
@@ -114,13 +117,12 @@ class RandomForestMSE:
         Returns:
             npt.NDArray[np.float64]: Predicted values, array of shape (n_objects,).
         """
-        y_pred = np.zeros(shape=X.shape[0]) 
+        y_pred = np.zeros(shape=X.shape[0])
 
         for t in range(self._fitted_trees):
             y_pred += self.forest[t].predict(X)
-            
-        return y_pred / self._fitted_trees
 
+        return y_pred / self._fitted_trees
 
     def dump(self, dirpath: str) -> None:
         """
